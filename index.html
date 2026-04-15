@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Switch-KD: Visual-Switch Knowledge Distillation for VLMs</title>
+    <meta name="description" content="Switch-KD: Visual-Switch Knowledge Distillation for Vision-Language Models - CVPR Findings 2026">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+            scroll-behavior: smooth;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .navbar .logo:hover {
+            opacity: 0.8;
+        }
+
+        .navbar .logo img {
+            height: 32px;
+            width: auto;
+        }
+
+        .navbar .logo-text {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar .nav-links a {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1em;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .navbar .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(135deg, #9a8fd4 0%, #b8a9e6 100%);
+            transition: width 0.3s ease;
+        }
+
+        .navbar .nav-links a:hover {
+            color: #9a8fd4;
+        }
+
+        .navbar .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .navbar .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .navbar .nav-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .navbar .nav-btn.primary {
+            background: linear-gradient(135deg, #9a8fd4 0%, #b8a9e6 100%);
+            color: white;
+        }
+
+        .navbar .nav-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(154, 143, 212, 0.4);
+        }
+
+        .navbar .nav-btn.secondary {
+            background: #f8f9fa;
+            color: #9a8fd4;
+            border: 1px solid #9a8fd4;
+        }
+
+        .navbar .nav-btn.secondary:hover {
+            background: #9a8fd4;
+            color: white;
+        }
+
+        /* Mobile Menu Button */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: #9a8fd4;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        /* Adjust hero section for fixed navbar */
+        .hero {
+            padding-top: 100px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #9a8fd4 0%, #b8a9e6 100%);
+            color: white;
+            padding: 100px 0 80px 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .hero .subtitle {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            opacity: 0.95;
+        }
+
+        .authors {
+            font-size: 1em;
+            margin-bottom: 15px;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        .authors a {
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px dotted rgba(255, 255, 255, 0.5);
+        }
+
+        .authors a:hover {
+            border-bottom-style: solid;
+        }
+
+        .affiliation {
+            font-size: 0.95em;
+            margin-bottom: 25px;
+            opacity: 0.85;
+        }
+
+        .conference {
+            font-size: 0.9em;
+            margin-bottom: 25px;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .badges span {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: white;
+            color: #9a8fd4;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn.primary {
+            background: #fff;
+            color: #9a8fd4;
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn.secondary:hover {
+            background: white;
+            color: #9a8fd4;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: white;
+            margin: 40px 20px;
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .content-section h2 {
+            font-size: 2em;
+            margin-bottom: 25px;
+            color: #9a8fd4;
+            border-bottom: 3px solid #9a8fd4;
+            padding-bottom: 10px;
+        }
+
+        .content-section h3 {
+            font-size: 1.5em;
+            margin: 30px 0 15px;
+            color: #555;
+        }
+
+        .content-section p {
+            margin-bottom: 15px;
+            font-size: 1.05em;
+            line-height: 1.8;
+        }
+
+        .contributions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .contribution-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 4px solid #9a8fd4;
+        }
+
+        .contribution-card h4 {
+            color: #9a8fd4;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        /* Images */
+        .figure {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .figure img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+        }
+
+        .figure-caption {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        /* Results */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #9a8fd4 0%, #b8a9e6 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result-card .number {
+            font-size: 3em;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .result-card .label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* Benchmarks */
+        .benchmarks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .benchmark-category {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .benchmark-category .category-name {
+            font-weight: 600;
+            color: #9a8fd4;
+            margin-bottom: 8px;
+        }
+
+        .benchmark-category .benchmarks-list {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* Citation */
+        .citation-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow-x: auto;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(154, 143, 212, 0.15);
+        }
+
+        .citation-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 12px;
+            padding: 3px;
+            background: linear-gradient(135deg, #9a8fd4 0%, #b8a9e6 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .citation-box pre {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+        }
+
+        /* Footer */
+        footer {
+            background: #7a6db8;
+            color: white;
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 60px;
+        }
+
+        footer p {
+            margin: 5px 0;
+            opacity: 0.8;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: #f0f0f0;
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 20px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                gap: 15px;
+            }
+
+            .navbar .nav-links.active {
+                display: flex;
+            }
+
+            .navbar .nav-buttons {
+                display: none;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .hero h1 {
+                font-size: 2em;
+            }
+
+            .hero .subtitle {
+                font-size: 1.1em;
+            }
+
+            .authors {
+                font-size: 0.9em;
+                text-align: left;
+                padding: 0 10px;
+            }
+
+            .content-section {
+                padding: 30px 20px;
+                margin: 20px 10px;
+            }
+
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            footer p {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="https://www.lixiang.com" class="logo" target="_blank">
+                <img src="liauto_logo.png" alt="Li Auto Logo">
+                <span class="logo-text">Li Auto</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#abstract">Abstract</a></li>
+                <li><a href="#method">Method</a></li>
+                <li><a href="#results">Results</a></li>
+                <li><a href="#citation">Citation</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="https://arxiv.org/abs/XXXX.XXXXX" class="nav-btn primary">Paper</a>
+                <a href="https://github.com/your-username/Switch-KD" class="nav-btn secondary">GitHub</a>
+            </div>
+            <div class="menu-toggle" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Switch-KD</h1>
+            <p class="subtitle">Visual-Switch Knowledge Distillation for Vision-Language Models</p>
+
+            <div class="authors">
+                Haoyi Sun<sup>✉</sup>,
+                Xiaoxiao Wang,
+                Ning Mao,
+                Qian Wang,
+                Lifu Mu,
+                Wen Zheng,
+                Tao Wei,
+                Wei Chen
+            </div>
+
+            <div class="affiliation">
+                Li Auto Inc.
+            </div>
+
+            <div class="conference">
+                ✉ Corresponding author
+            </div>
+
+            <div class="conference">
+                IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Findings, 2026
+            </div>
+
+            <div class="badges">
+                <span>CVPR Findings 2026</span>
+                <span>Knowledge Distillation</span>
+                <span>Vision-Language Models</span>
+            </div>
+
+            <div class="buttons">
+                <a href="https://arxiv.org/abs/XXXX.XXXXX" class="btn primary">📄 Paper (arXiv)</a>
+                <a href="https://github.com/your-username/Switch-KD" class="btn secondary">💻 GitHub</a>
+                <span class="btn" style="background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid white; cursor: default;">🤗 Weights (Coming Soon)</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Abstract Section -->
+    <section class="container" id="abstract">
+        <div class="content-section">
+            <h2>Abstract</h2>
+            <p>
+                Vision-Language Models (VLMs) have shown remarkable capabilities in joint vision–language understanding, but their large scale poses significant challenges for deployment in resource-constrained scenarios. Knowledge Distillation (KD) offers a viable way to improve model capabilities without increasing model size, making deployment more efficient.
+            </p>
+            <p>
+                However, applying KD to VLMs is challenged by modality-specific supervision: although multimodal knowledge in VLMs is fused within the language space, current methods supervise each modality separately without explicitly addressing multimodal alignment, leading to inconsistent multimodal knowledge transfer.
+            </p>
+            <p>
+                To address this, we propose <strong>Switch-KD</strong>, a visual-switch distillation framework that unifies vision–language knowledge transfer within a shared text-probability space. Switch-KD comprises two key components:
+            </p>
+            <p>
+                (1) <strong>Visual-Switch Distillation</strong>, which switches the student's visual outputs into the teacher's language pathway to construct cross-modal probabilistic references for implicit visual knowledge transfer; and
+            </p>
+            <p>
+                (2) <strong>Dynamic Bi-directional Logits Difference (DBiLD) loss</strong>, which adaptively aligns informative probability regions while preserving the distributional structures of teacher and student through bidirectional supervision.
+            </p>
+            <p>
+                Guided by Switch-KD, a 0.5B TinyLLaVA effectively distills rich multimodal knowledge from its 3B teacher, yielding an average improvement of 3.6 points across 10 multimodal benchmarks without any architectural modification.
+            </p>
+        </div>
+    </section>
+
+    <!-- Method Section -->
+    <section class="container" id="method">
+        <div class="content-section">
+            <h2>Method</h2>
+
+            <div class="figure">
+                <img src="docs/assets/method.png" alt="Switch-KD Architecture">
+            </div>
+
+            <h3>1. Visual-Switch Distillation</h3>
+            <p>
+                Switches the student's visual encoder outputs into the teacher's language pathway, creating a hybrid inference route where the teacher's powerful language modules interpret the student's visual features. This design enables implicit cross-modal knowledge transfer within the unified text-probability space without modifying the student's architecture.
+            </p>
+            <p style="margin-top: 15px; padding: 15px; background: #f0eff8; border-left: 4px solid #9a8fd4; font-style: italic;">
+                <strong>Key Insight:</strong> If the student visual encoder learns meaningful representations, its visual features should be correctly interpreted and decoded by the teacher's language modules, enabling effective knowledge transfer through a simple switch mechanism.
+            </p>
+
+            <h3>2. DBiLD Loss</h3>
+            <p>
+                Dynamic Bi-directional Logits Difference loss adaptively aligns informative probability regions while preserving the distributional structures of both teacher and student:
+            </p>
+            <ul style="line-height: 2;">
+                <li><strong>Adaptive Top-K Selection:</strong> Uses Kneedle algorithm to automatically find the optimal boundary between information-rich and long-tail regions, focusing on the most informative and confident predictions</li>
+                <li><strong>Bidirectional Alignment:</strong> Performs alignment from both teacher-guided and student-guided perspectives, ensuring comprehensive knowledge transfer by verifying confident predictions from both sides</li>
+                <li><strong>Reverse KL Divergence:</strong> Focuses on high-confidence regions for stable optimization, avoiding over-emphasis on noisy long-tail distributions and enabling more reliable knowledge transfer</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="container" id="results">
+        <div class="content-section">
+            <h2>Results</h2>
+            <p>
+                Switch-KD achieves state-of-the-art performance on 10 multimodal benchmarks, surpassing existing distillation methods and lightweight VLM approaches.
+            </p>
+
+            <div class="figure" style="display: flex; justify-content: center; align-items: center; margin: 30px 0;">
+                <img src="docs/assets/chart.png" alt="Performance Radar Chart" style="max-width: 60%; height: auto;">
+            </div>
+
+            <h3>Comparison with LLaVA-KD on 10 Benchmarks</h3>
+            <table style="border-collapse: collapse; text-align: center; width: 100%; margin: 20px 0;">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="border: 1px solid #ddd; padding: 12px; background: #9a8fd4; color: white; font-weight: 600;">Method</th>
+                        <th colspan="3" style="border: 1px solid #ddd; padding: 12px; background: #9a8fd4; color: white; font-weight: 600;">Perception & Understanding</th>
+                        <th colspan="4" style="border: 1px solid #ddd; padding: 12px; background: #9a8fd4; color: white; font-weight: 600;">Cognition & Reasoning</th>
+                        <th colspan="3" style="border: 1px solid #ddd; padding: 12px; background: #9a8fd4; color: white; font-weight: 600;">Other</th>
+                        <th rowspan="2" style="border: 1px solid #ddd; padding: 12px; background: #9a8fd4; color: white; font-weight: 600;">Avg<sub>10</sub></th>
+                    </tr>
+                    <tr>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">MME</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">MMB</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">MMB<sup>CN</sup></th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">VQA</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">GQA</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">SciQA</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">MMMU</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">Text</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">VizWiz</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">POPE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 500;">TinyLLaVA</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">61.5</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">58.9</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">54.2</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">74.8</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">58.3</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">59.1</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">33.6</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">49.2</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">28.9</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">86.1</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">56.5</td>
+                    </tr>
+                    <tr style="background: #f8f9fa;">
+                        <td style="border: 1px solid #ddd; padding: 10px;">LLaVA-KD</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">64.7</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">61.3</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">57.0</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">77.7</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">59.8</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">60.6</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">28.3</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">52.0</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">41.5</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">86.4</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">58.9</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">Switch-KD</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">66.8</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">63.5</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">57.8</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">79.6</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">61.6</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">57.9</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">29.8</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">52.3</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">44.9</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">87.3</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">60.1</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Comparison with Align-KD on 6 Benchmarks</h3>
+            <table style="border-collapse: collapse; text-align: center; width: 100%; margin: 20px 0;">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="border: 1px solid #ddd; padding: 12px; background: #9a8fd4; color: white; font-weight: 600;">Method</th>
+                        <th colspan="6" style="border: 1px solid #ddd; padding: 12px; background: #9a8fd4; color: white; font-weight: 600;">Performance Metrics</th>
+                        <th rowspan="2" style="border: 1px solid #ddd; padding: 12px; background: #9a8fd4; color: white; font-weight: 600;">Avg</th>
+                    </tr>
+                    <tr>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">MME<sup>P</sup></th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">MMB</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">GQA</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">SciQA</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">TextVQA</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #b8b8d1; color: white; font-size: 0.85em;">POPE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 10px;">MobileVLM V2</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">1289.2</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">55.9</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">59.0</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">64.5</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">52.2</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">86.1</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">63.7</td>
+                    </tr>
+                    <tr style="background: #f8f9fa;">
+                        <td style="border: 1px solid #ddd; padding: 10px;">Align-KD<sup>*</sup></td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">1303.8</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">57.5</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">60.1</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">67.7</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">53.1</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">87.0</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">65.1</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">Switch-KD</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">1411.5</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">68.4</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">61.9</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">71.6</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">57.0</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">87.5</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; font-weight: 600; background: #f0eff8;">69.5</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="font-size: 0.9em; color: #666; margin-top: 10px; font-style: italic;">
+                <sup>*</sup> Align-KD results are from the long instruction subset (3.6M samples). Switch-KD uses only 1.2M samples with a lighter backbone.
+            </p>
+        </div>
+    </section>
+
+    <!-- Citation Section -->
+    <section class="container" id="citation">
+        <div class="content-section">
+            <h2>Citation</h2>
+            <div class="citation-box">
+                <pre>@inproceedings{sun2026switch,
+  title={Switch-KD: Visual-Switch Knowledge Distillation
+         for Vision-Language Models},
+  author={Sun, Haoyi and Wang, Xiaoxiao and Mao, Ning and
+          Wang, Qian and Mu, Lifu and Zheng, Wen and
+          Wei, Tao and Chen, Wei},
+  booktitle={IEEE/CVF Conference on Computer Vision and
+             Pattern Recognition (CVPR) Findings},
+  year={2026}
+}</pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; Switch-KD. All rights reserved.</p>
+            <p>Li Auto Inc.</p>
+            <p>
+                <strong>Contact:</strong> <a href="mailto:sunhaoyi@lixiang.com">sunhaoyi@lixiang.com</a> (Work) |
+                <a href="mailto:haoyi199815@126.com">haoyi199815@126.com</a> (Personal)
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                const navLinks = document.querySelector('.nav-links');
+                navLinks.classList.remove('active');
+            });
+        });
+
+        // Add scroll effect to navbar
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+            } else {
+                navbar.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+            }
+        });
+    </script>
+</body>
+</html>
