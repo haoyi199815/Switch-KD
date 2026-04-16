@@ -1,6 +1,7 @@
 <div align="center">
 <h1>Switch-KD</h1>
 <h3>Visual-Switch Knowledge Distillation for Vision-Language Models</h3>
+<h4>🏢 Open-source release of <strong>Li Auto's MindKD</strong> technology</h4>
 
 Haoyi Sun<sup>✉</sup>, Xiaoxiao Wang, Ning Mao, Qian Wang, Lifu Mu, Wen Zheng, Tao Wei, Wei Chen
 
