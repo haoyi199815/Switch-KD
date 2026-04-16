@@ -12,7 +12,7 @@ Li Auto Inc.
 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Findings, 2026
 
 <a href="https://arxiv.org/abs/XXXX.XXXXX"><img src='https://img.shields.io/badge/arXiv-Switch_KD-red' alt='Paper PDF'></a>
-<a href="https://your-username.github.io/Switch-KD/"><img src='https://img.shields.io/badge/Project_Page-Switch_KD-green' alt='Project Page'></a>
+<a href="https://haoyi199815.github.io/Switch-KD"><img src='https://img.shields.io/badge/Project_Page-Switch_KD-green' alt='Project Page'></a>
 <img src='https://img.shields.io/badge/%F0%9F%A4%97%20Weights-Coming%20Soon-yellow' alt='Hugging Face Weights'>
 </div>
 
