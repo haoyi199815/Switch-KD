@@ -22,7 +22,7 @@ IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Findings, 
 
 ## 📰 News
 
-- **` 2026-04`:** Paper accepted to **CVPR Findings 2026**! 🎉
+- **`2026-04`:** Paper accepted to **CVPR Findings 2026**! 🎉
 - More updates coming soon (code, model weights, demo...)
 
 ---
