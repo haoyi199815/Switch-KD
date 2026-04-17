@@ -11,7 +11,7 @@ Li Auto Inc.
 
 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Findings, 2026
 
-<a href="https://arxiv.org/abs/XXXX.XXXXX"><img src='https://img.shields.io/badge/arXiv-Switch_KD-red' alt='Paper PDF'></a>
+<a href="https://arxiv.org/abs/2604.14629"><img src='https://img.shields.io/badge/arXiv-Switch_KD-red' alt='Paper PDF'></a>
 <a href="https://haoyi199815.github.io/Switch-KD"><img src='https://img.shields.io/badge/Project_Page-Switch_KD-green' alt='Project Page'></a>
 <img src='https://img.shields.io/badge/%F0%9F%A4%97%20Weights-Coming%20Soon-yellow' alt='Hugging Face Weights'>
 </div>
@@ -226,10 +226,10 @@ Switch-KD is built upon the following outstanding open-source works:
 If you find Switch-KD is useful in your research or applications, please consider giving us a star 🌟 and citing it by the following BibTeX entry.
 
 ```bibtex
-@inproceedings{sun2026switch,
+@article{sun2026switchkd,
   title={Switch-KD: Visual-Switch Knowledge Distillation for Vision-Language Models},
   author={Sun, Haoyi and Wang, Xiaoxiao and Mao, Ning and Wang, Qian and Mu, Lifu and Zheng, Wen and Wei, Tao and Chen, Wei},
-  booktitle={IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Findings},
+  journal={arXiv preprint arXiv:2604.14629},
   year={2026}
 }
 ```
