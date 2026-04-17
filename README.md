@@ -1,5 +1,5 @@
 <div align="center">
-<img src="docs/assets/logo.PNG" alt="Switch-KD Logo" width="200">
+<img src="docs/assets/logo.png" alt="Switch-KD Logo" width="200">
 
 <h1>Switch-KD</h1>
 <h3>Visual-Switch Knowledge Distillation for Vision-Language Models</h3>
