@@ -13,17 +13,17 @@ Li Auto Inc.
 
 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Findings, 2026
 
-<a href="https://arxiv.org/abs/2604.14629"><img src='https://img.shields.io/badge/arXiv-Switch_KD-red' alt='Paper PDF'></a>
-<a href="https://haoyi199815.github.io/Switch-KD"><img src='https://img.shields.io/badge/Project_Page-Switch_KD-green' alt='Project Page'></a>
-<img src='https://img.shields.io/badge/%F0%9F%A4%97%20Weights-Coming%20Soon-yellow' alt='Hugging Face Weights'>
+<a href="https://arxiv.org/abs/2604.14629"><img src='https://img.shields.io/badge/arXiv-Switch--KD-red' alt='Paper PDF'></a>
+<a href="https://haoyi199815.github.io/Switch-KD"><img src='https://img.shields.io/badge/Project_Page-Switch--KD-green' alt='Project Page'></a>
+<a href="https://huggingface.co/HaoyiSun/Switch-KD-Qwen2.5-CLIP-1.8B"><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Weights-Switch--KD--Qwen2.5--CLIP--1.8B-blue' alt='Hugging Face Weights'></a>
 </div>
 
 ---
 
 ## 📰 News
 
-- **` 2026-04`:** Paper accepted to **CVPR Findings 2026**! 🎉
-- More updates coming soon (code, model weights, demo...)
+- **`2026-04-23`:** Model weights and inference code released! Check out the [Switch-KD-Qwen2.5-CLIP-1.8B](https://huggingface.co/HaoyiSun/Switch-KD-Qwen2.5-CLIP-1.8B) on Hugging Face 🤗
+- **`2026-04`:** Paper accepted to **CVPR Findings 2026**! 🎉
 
 ---
 
@@ -200,6 +200,63 @@ Dynamic Bi-directional Logits Difference loss adaptively aligns informative prob
 - **Bidirectional Alignment**: Performs alignment from both teacher-guided and student-guided perspectives, ensuring comprehensive knowledge transfer by verifying confident predictions from both sides
 
 - **Reverse KL Divergence**: Focuses on high-confidence regions for stable optimization, avoiding over-emphasis on noisy long-tail distributions and enabling more reliable knowledge transfer
+
+---
+
+## 🚀 Inference
+
+Switch-KD models can be easily used for inference through our command-line interface:
+
+### Installation
+
+```bash
+pip install transformers accelerate torch
+```
+
+### Quick Start
+
+```bash
+# Single-round inference
+python chat.py --model HaoyiSun/Switch-KD-Qwen2.5-CLIP-1.8B \
+    --image docs/assets/view.jpg \
+    --question "Please describe this picture."
+
+# Interactive multi-round chat
+python chat.py --model HaoyiSun/Switch-KD-Qwen2.5-CLIP-1.8B \
+    --image docs/assets/view.jpg \
+    --interactive
+
+# With custom settings
+python chat.py --model HaoyiSun/Switch-KD-Qwen2.5-CLIP-1.8B \
+    --image docs/assets/view.jpg \
+    --interactive \
+    --max-new-tokens 1024 \
+    --torch-dtype fp16
+```
+
+### Example
+
+<div align="center">
+<img src="docs/assets/view.jpg" width="400">
+</div>
+
+```bash
+python chat.py --model HaoyiSun/Switch-KD-Qwen2.5-CLIP-1.8B \
+    --image docs/assets/view.jpg \
+    --question "Please describe this picture."
+```
+
+**Output**: This is a scenic photograph of a peaceful lake surrounded by mountains. The water appears calm and reflects the surrounding landscape...
+
+---
+
+## 🤗 Open Source Weights
+
+| Model | Vision Encoder | LLM | CKPTs |
+|-------|----------------|-----|-------|
+| Switch-KD-Qwen2.5-CLIP-1.8B | [CLIP-ViT-L/14-336](https://huggingface.co/openai/clip-vit-large-patch14-336) | [Qwen/Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct) | [HaoyiSun/Switch-KD-Qwen2.5-CLIP-1.8B](https://huggingface.co/HaoyiSun/Switch-KD-Qwen2.5-CLIP-1.8B) |
+
+More model variants will be released soon. Stay tuned!
 
 ---
 
